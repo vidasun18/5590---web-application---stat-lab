@@ -1,0 +1,9 @@
+{
+  "quantiles": "Hyndman-Fan type 7: linear interpolation at (n-1)*p; endpoints included.",
+  "skewness": "Adjusted Fisher-Pearson sample skewness (n >= 3).",
+  "kurtosis": "Bias-corrected Fisher excess kurtosis (n >= 4); normal distribution = 0.",
+  "cv": "Sample standard deviation / absolute mean * 100; undefined for zero mean.",
+  "zscores": "Population standard deviation; Z outliers use |z| > 3.",
+  "missing": "Reject missing selected values by default; drop policy removes rows explicitly.",
+  "grouped": "Value frequencies are exact; class intervals use midpoints and are estimates."
+}

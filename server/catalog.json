@@ -1,0 +1,218 @@
+{
+  "count": {
+    "name": "Count",
+    "section": "Descriptive Statistics",
+    "formula": "N",
+    "description": "Number of included observations."
+  },
+  "sum": {
+    "name": "Sum",
+    "section": "Descriptive Statistics",
+    "formula": "Σx",
+    "description": "Total of all included values."
+  },
+  "minimum": {
+    "name": "Minimum",
+    "section": "Descriptive Statistics",
+    "formula": "min(x)",
+    "description": "Smallest observation."
+  },
+  "maximum": {
+    "name": "Maximum",
+    "section": "Descriptive Statistics",
+    "formula": "max(x)",
+    "description": "Largest observation."
+  },
+  "range": {
+    "name": "Range",
+    "section": "Descriptive Statistics",
+    "formula": "max(x) − min(x)",
+    "description": "Distance between the extremes."
+  },
+  "mean": {
+    "name": "Arithmetic mean",
+    "section": "Measures of Central Tendency",
+    "formula": "Σx / N",
+    "description": "Average observation."
+  },
+  "median": {
+    "name": "Median",
+    "section": "Measures of Central Tendency",
+    "formula": "P50",
+    "description": "Middle value; interpolated for even counts."
+  },
+  "mode": {
+    "name": "Mode",
+    "section": "Measures of Central Tendency",
+    "formula": "argmax frequency(x)",
+    "description": "All most frequent values; undefined when all values occur once."
+  },
+  "midrange": {
+    "name": "Midrange",
+    "section": "Measures of Central Tendency",
+    "formula": "(min + max) / 2",
+    "description": "Midpoint of the extremes."
+  },
+  "population_variance": {
+    "name": "Population variance",
+    "section": "Measures of Dispersion",
+    "formula": "Σ(x − μ)² / N",
+    "description": "Variance treating observations as the population."
+  },
+  "sample_variance": {
+    "name": "Sample variance",
+    "section": "Measures of Dispersion",
+    "formula": "Σ(x − x̄)² / (n − 1)",
+    "description": "Unbiased sample variance; requires two observations."
+  },
+  "population_std": {
+    "name": "Population standard deviation",
+    "section": "Measures of Dispersion",
+    "formula": "√population variance",
+    "description": "Population spread in the original units."
+  },
+  "sample_std": {
+    "name": "Sample standard deviation",
+    "section": "Measures of Dispersion",
+    "formula": "√sample variance",
+    "description": "Sample spread; requires two observations."
+  },
+  "mean_absolute_deviation": {
+    "name": "Mean absolute deviation",
+    "section": "Measures of Dispersion",
+    "formula": "mean(|x − mean(x)|)",
+    "description": "Average absolute distance from the mean."
+  },
+  "median_absolute_deviation": {
+    "name": "Median absolute deviation",
+    "section": "Measures of Dispersion",
+    "formula": "median(|x − median(x)|)",
+    "description": "Unscaled robust spread about the median."
+  },
+  "iqr": {
+    "name": "Interquartile range",
+    "section": "Measures of Dispersion",
+    "formula": "Q3 − Q1",
+    "description": "Spread of the middle half of the data."
+  },
+  "coefficient_of_variation": {
+    "name": "Coefficient of variation (%)",
+    "section": "Measures of Dispersion",
+    "formula": "100 × s / |x̄|",
+    "description": "Relative sample spread; undefined at mean zero."
+  },
+  "q1": {
+    "name": "First quartile",
+    "section": "Measures of Position",
+    "formula": "P25 (type 7)",
+    "description": "25th percentile."
+  },
+  "q2": {
+    "name": "Second quartile",
+    "section": "Measures of Position",
+    "formula": "P50 (type 7)",
+    "description": "50th percentile."
+  },
+  "q3": {
+    "name": "Third quartile",
+    "section": "Measures of Position",
+    "formula": "P75 (type 7)",
+    "description": "75th percentile."
+  },
+  "percentiles": {
+    "name": "Percentiles",
+    "section": "Measures of Position",
+    "formula": "x[j] + (h−j)(x[j+1]−x[j]); h=(n−1)p",
+    "description": "Requested percentile positions, using linear interpolation."
+  },
+  "deciles": {
+    "name": "Deciles",
+    "section": "Measures of Position",
+    "formula": "P10, P20, …, P90",
+    "description": "Nine equally spaced percentile positions."
+  },
+  "zscores": {
+    "name": "Z-scores",
+    "section": "Measures of Position",
+    "formula": "(x − μ) / σ",
+    "description": "Population-standardized observations, in input order."
+  },
+  "five_number_summary": {
+    "name": "Five-number summary",
+    "section": "Measures of Position",
+    "formula": "min, Q1, median, Q3, max",
+    "description": "Extremes and quartiles."
+  },
+  "skewness": {
+    "name": "Sample skewness",
+    "section": "Distribution Characteristics",
+    "formula": "√(n(n−1))/(n−2) × m3/m2^(3/2)",
+    "description": "Bias-corrected asymmetry; undefined for constant data or n < 3."
+  },
+  "excess_kurtosis": {
+    "name": "Sample excess kurtosis",
+    "section": "Distribution Characteristics",
+    "formula": "(n−1)/((n−2)(n−3)) × ((n+1)g2 + 6)",
+    "description": "Bias-corrected excess; g2=m4/m2²−3. Requires n >= 4 and spread."
+  },
+  "standard_error": {
+    "name": "Standard error of the mean",
+    "section": "Distribution Characteristics",
+    "formula": "s / √n",
+    "description": "Estimated sampling error using sample standard deviation."
+  },
+  "iqr_outliers": {
+    "name": "IQR outliers",
+    "section": "Distribution Characteristics",
+    "formula": "x < Q1−1.5 IQR or x > Q3+1.5 IQR",
+    "description": "Observations beyond the Tukey fences."
+  },
+  "z_outliers": {
+    "name": "Z-score outliers",
+    "section": "Distribution Characteristics",
+    "formula": "|z| > 3",
+    "description": "Observations over three population standard deviations away."
+  },
+  "frequency": {
+    "name": "Frequency distribution",
+    "section": "Additional Analysis",
+    "formula": "f, f/N, cumulative f",
+    "description": "Exact values with absolute, relative, and cumulative frequencies."
+  },
+  "geometric_mean": {
+    "name": "Geometric mean",
+    "section": "Additional Analysis",
+    "formula": "exp(mean(log(x)))",
+    "description": "Multiplicative average; requires strictly positive values."
+  },
+  "harmonic_mean": {
+    "name": "Harmonic mean",
+    "section": "Additional Analysis",
+    "formula": "N / Σ(1/x)",
+    "description": "Reciprocal average; requires strictly positive values."
+  },
+  "weighted_mean": {
+    "name": "Weighted mean",
+    "section": "Additional Analysis",
+    "formula": "Σ(w x) / Σw",
+    "description": "Requires one nonnegative weight per included observation and positive total weight."
+  },
+  "pearson": {
+    "name": "Pearson correlation",
+    "section": "Additional Analysis",
+    "formula": "cov(x,y) / (sx sy)",
+    "description": "Linear association for paired observations; both columns must vary."
+  },
+  "spearman": {
+    "name": "Spearman correlation",
+    "section": "Additional Analysis",
+    "formula": "Pearson(rank(x), rank(y))",
+    "description": "Rank correlation with average ranks for ties."
+  },
+  "regression": {
+    "name": "Simple linear regression",
+    "section": "Additional Analysis",
+    "formula": "y = intercept + slope × x",
+    "description": "Ordinary least squares; includes R². Requires varying x."
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "statlab-mern-4307",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.12" },
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "dev": "node scripts/start.mjs --dev",
+    "build": "vite build --config client/vite.config.js",
+    "server": "node server/index.js",
+    "seed": "node server/seed.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "check": "node scripts/check.mjs"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "csv-parse": "^6.1.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^9.0.0",
+    "multer": "^2.0.2",
+    "pdfkit": "^0.17.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.0",
+    "supertest": "^7.1.4",
+    "vite": "^7.2.0"
+  }
+}

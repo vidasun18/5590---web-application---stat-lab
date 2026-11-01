@@ -1,0 +1,75 @@
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
+import { HashRouter, Routes, Route, Navigate, NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Dashboard, History, Compare, Profile } from './workspace.jsx';
+import { Editor } from './editor.jsx';
+import { Analyze, SavedAnalysis } from './analysis.jsx';
+import './extra.css';
+
+let csrf = '';
+export async function api(path, options = {}) {
+  const method = options.method || 'GET', headers = {};
+  if (method !== 'GET') headers['X-CSRF-Token'] = csrf;
+  if (options.data !== undefined) headers['Content-Type'] = 'application/json';
+  let response;
+  try { response = await fetch(`/api/${path}`, { method, credentials: 'same-origin', headers, body: options.form || (options.data !== undefined ? JSON.stringify(options.data) : undefined) }); }
+  catch { throw new Error('Cannot connect to StatLab. Start the demo server and try again.'); }
+  const data = await response.json(); if (data.csrf_token) csrf = data.csrf_token;
+  if (!response.ok) {
+    if (response.status === 403) { const fresh = await fetch('/api/me').then(r => r.json()); csrf = fresh.csrf_token; }
+    if (response.status === 401 && !['login', 'profile/password'].includes(path)) window.dispatchEvent(new Event('statlab-signout'));
+    throw new Error(data.error || 'The request could not be completed.');
+  }
+  return data;
+}
+const Context = createContext(null);
+export const useApp = () => useContext(Context);
+const paths = { home: 'M3 10l9-7 9 7v10H3z M9 20v-7h6v7', data: 'M4 4h16v16H4z M4 9h16 M9 4v16 M4 14h16', history: 'M3 11a9 9 0 1 1 3 7 M3 4v7h7 M12 7v5l3 2', compare: 'M5 20V10 M12 20V4 M19 20V7 M2 20h20', settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z', plus: 'M12 5v14 M5 12h14', search: 'M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14 M15 15l6 6', arrow: 'M5 12h14 M14 7l5 5-5 5', file: 'M6 3h8l4 4v14H6z M14 3v5h4 M9 12h6 M9 16h6', copy: 'M9 9h12v12H9z M15 9V3H3v12h6', edit: 'M4 16l12-12 4 4L8 20H4z M14 6l4 4', trash: 'M3 6h18 M8 6V3h8v3 M6 6l1 15h10l1-15 M10 10v7 M14 10v7', logout: 'M10 4H4v16h6 M10 12h11 M17 8l4 4-4 4', moon: 'M20 15a9 9 0 1 1-11-11 7 7 0 0 0 11 11', upload: 'M4 15v6h16v-6 M12 16V3 M7 8l5-5 5 5', download: 'M4 15v6h16v-6 M12 3v13 M7 11l5 5 5-5', lock: 'M6 10h12v11H6z M8 10V6a4 4 0 0 1 8 0v4', calculator: 'M5 3h14v18H5z M8 6h8 M8 11h1 M15 11h1 M8 16h1 M15 16h1', close: 'M6 6l12 12 M6 18L18 6' };
+export function Icon({ name }) { return <svg className="icon" viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name] || paths.file}/></svg>; }
+export function Head({ eyebrow, title, subtitle, children }) { return <div className="page-head"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{subtitle}</p></div><div className="actions">{children}</div></div>; }
+export function ErrorNotice({ error }) { return error ? <div className="notice error" role="alert">{error}</div> : null; }
+export function Loading() { return <div className="empty"><span className="spinner"/> Loading your workspace…</div>; }
+export const fmt = value => value == null ? 'Undefined' : typeof value === 'number' ? (Math.abs(value) >= 1e10 || (value !== 0 && Math.abs(value) < .0001) ? value.toExponential(4) : value.toLocaleString(undefined, { maximumFractionDigits: 4 })) : Array.isArray(value) ? value.length ? value.map(fmt).join(', ') : 'None detected' : typeof value === 'object' ? Object.entries(value).map(([k, v]) => `${k}: ${fmt(v)}`).join(' · ') : String(value);
+export const date = value => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+export function Modal({ title, children, close }) {
+  useEffect(() => { const fn = e => { if (e.key === 'Escape') close(); }; document.addEventListener('keydown', fn); const previous = document.activeElement; const first = document.querySelector('.modal-box input, .modal-box button'); first?.focus(); return () => { document.removeEventListener('keydown', fn); previous?.focus(); }; }, []);
+  return <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) close(); }}><div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle" onKeyDown={e => { if (e.key !== 'Tab') return; const items = [...e.currentTarget.querySelectorAll('input,select,textarea,button,a')].filter(x => !x.disabled); const first = items[0], last = items.at(-1); if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); } }}><div className="panel-head"><h2 id="modalTitle">{title}</h2><button className="icon-btn" onClick={close} aria-label="Close dialog"><Icon name="close"/></button></div>{children}</div></div>;
+}
+function Auth() {
+  const signup = useLocation().pathname === '/signup', { setUser, notify, refresh } = useApp(), navigate = useNavigate();
+  const [busy, setBusy] = useState(false), [error, setError] = useState(''), [show, setShow] = useState(false);
+  useEffect(() => { document.title = `${signup ? 'Create account' : 'Sign in'} · StatLab MERN`; }, [signup]);
+  async function submit(e, demo = false) {
+    e?.preventDefault(); setError(''); setBusy(true);
+    try {
+      const form = e ? Object.fromEntries(new FormData(e.currentTarget)) : { identifier: 'demo', password: 'Demo4307!', remember: true };
+      if (signup && !demo) { if (form.password !== form.confirmation) throw new Error('Passwords do not match.'); await api('signup', { method: 'POST', data: form }); form.identifier = form.username; }
+      const result = await api('login', { method: 'POST', data: { identifier: form.identifier, password: form.password, remember: form.remember === 'on' || form.remember === true } });
+      setUser(result.user); await refresh(); notify(signup ? 'Your workspace is ready.' : 'Welcome to your workspace.'); navigate('/dashboard');
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
+  }
+  return <main className="auth-screen" id="content"><section className="auth-art"><Link className="brand" to="/login"><img src="/static/mark.svg" alt=""/>StatLab<em>.</em></Link><div className="auth-intro"><p className="eyebrow">FROM DATA TO UNDERSTANDING</p><h1>Every number<br/>has a <em>story.</em></h1><p>Find the patterns. Understand the uncertainty. Keep your research together in one thoughtful workspace.</p><div className="auth-chart" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i}/>)}</div><p>Explore your data. Save your insights.<br/>Pick up exactly where you left off.</p></div><footer>MONGODB · EXPRESS · REACT · NODE.JS</footer></section><section className="auth-form-side"><div className="auth-card"><p className="eyebrow">YOUR PERSONAL DATA LAB</p><h1>{signup ? 'Create your workspace.' : 'Welcome back.'}</h1><p>{signup ? 'Start collecting data and discovering insights.' : 'Sign in to your statistical workspace.'}</p><ErrorNotice error={error}/><form key={String(signup)} onSubmit={submit}>{signup ? <><div className="field"><label htmlFor="username">Username</label><input id="username" name="username" autoComplete="username" pattern="[A-Za-z0-9_]{3,32}" minLength={3} maxLength={32} required/></div><div className="field"><label htmlFor="email">Email address</label><input id="email" name="email" type="email" autoComplete="email" maxLength={254} required/></div></> : <div className="field"><label htmlFor="identifier">Username or email</label><input id="identifier" name="identifier" placeholder="Enter your username or email" autoComplete="username" maxLength={254} required/></div>}<div className="field"><label htmlFor="password">Password</label><div className="password-row"><input id="password" name="password" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} minLength={signup ? 8 : 1} maxLength={128} placeholder={signup ? 'At least 8 characters' : 'Enter your password'} required/><button type="button" onClick={() => setShow(!show)} aria-pressed={show}>{show ? 'Hide' : 'Show'}</button></div></div>{signup ? <div className="field"><label htmlFor="confirmation">Confirm password</label><input id="confirmation" name="confirmation" type="password" autoComplete="new-password" minLength={8} maxLength={128} required/></div> : <div className="options"><label className="check"><input name="remember" type="checkbox"/> Remember me for 30 days</label></div>}<button className="btn primary" disabled={busy}>{busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'} <Icon name="arrow"/></button></form><p className="switch">{signup ? 'Already have an account? ' : 'New to StatLab? '}<Link onClick={() => setError('')} to={signup ? '/login' : '/signup'}>{signup ? 'Sign in' : 'Create an account'}</Link></p><div className="demo-access"><strong>Presenting this project?</strong><p>Explore five sample datasets and a saved report.</p><button type="button" className="btn subtle" disabled={busy} onClick={() => submit(null, true)}>Open demo workspace <Icon name="arrow"/></button><small>demo / Demo4307!</small></div><p className="auth-note"><Icon name="lock"/> Stored in MongoDB on this computer.</p></div></section></main>;
+}
+function Shell() {
+  const { user, datasets, setUser, theme, toggleTheme, notify } = useApp(), location = useLocation();
+  const nav = [['/dashboard', 'home', 'Overview'], ['/datasets', 'data', 'My datasets'], ['/analyses', 'history', 'Saved analyses'], ['/compare', 'compare', 'Compare datasets'], ['/profile', 'settings', 'Settings']];
+  const title = nav.find(([p]) => p === location.pathname)?.[2] || (location.pathname.includes('analy') ? 'Statistical analysis' : 'Dataset editor');
+  useEffect(() => { document.title = `${title} · StatLab MERN`; }, [title]);
+  useEffect(() => { window.scrollTo(0, 0); document.getElementById('content')?.focus({ preventScroll: true }); }, [location.pathname]);
+  async function logout() { try { await api('logout', { method: 'POST', data: {} }); setUser(null); } catch (e) { notify(e.message, true); } }
+  if (!user) return <Navigate to="/login" replace/>;
+  return <><aside className="sidebar"><Link className="brand" to="/dashboard"><img src="/static/mark.svg" alt=""/>Stat<span>Lab<em>.</em></span></Link><div className="side-caption">YOUR WORKSPACE</div><nav className="nav-links" aria-label="Main navigation">{nav.map(([route, symbol, label]) => <NavLink key={route} to={route} className={({ isActive }) => isActive ? 'active' : ''}><Icon name={symbol}/>{label}{route === '/datasets' && <span className="count">{datasets.length}</span>}</NavLink>)}</nav><div className="side-note"><Icon name="lock"/><p><strong>Your research, saved locally.</strong><br/>Private datasets and reproducible analyses in your local MongoDB.</p><span className="badge">MERN EDITION · 4307</span></div><div className="side-account"><div className="avatar">{user.username.slice(0, 2).toUpperCase()}</div><div><div className="account-name">{user.username}</div><small>Personal workspace</small></div><button onClick={logout} aria-label="Sign out"><Icon name="logout"/></button></div></aside><div className="workspace"><header className="topbar"><div className="breadcrumb">Workspace <span>/</span><strong>{title}</strong></div><div className="top-actions"><span><i className="dot"/> Local MongoDB connected</span><button className="icon-btn" onClick={toggleTheme} title={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`} aria-label="Toggle light or dark theme"><Icon name="moon"/></button><Link to="/profile" className="avatar" aria-label="Profile">{user.username.slice(0, 2).toUpperCase()}</Link><button className="icon-btn mobile-logout" onClick={logout} aria-label="Sign out"><Icon name="logout"/></button></div></header><main id="content" tabIndex={-1}><Routes><Route path="/dashboard" element={<Dashboard/>}/><Route path="/datasets" element={<Dashboard datasetsOnly/>}/><Route path="/new" element={<Editor key="new"/>}/><Route path="/dataset/:id" element={<Editor/>}/><Route path="/analyze/:id" element={<Analyze/>}/><Route path="/analysis/:id" element={<SavedAnalysis/>}/><Route path="/analyses" element={<History/>}/><Route path="/compare" element={<Compare/>}/><Route path="/profile" element={<Profile/>}/><Route path="*" element={<Navigate to="/dashboard" replace/>}/></Routes><footer className="app-footer"><span>StatLab · A little clarity in every number.</span><span>React + Express · Local MongoDB</span></footer></main></div></>;
+}
+function App() {
+  const [user, setUser] = useState(null), [ready, setReady] = useState(false), [datasets, setDatasets] = useState([]), [analyses, setAnalyses] = useState([]), [error, setError] = useState(''), [toast, setToast] = useState(null);
+  const [theme, setTheme] = useState(() => { try { return localStorage.getItem('statlab-mern-theme') || 'light'; } catch { return 'light'; } });
+  const notify = useCallback((message, error = false) => setToast({ message, error, key: Date.now() }), []);
+  const refresh = useCallback(async () => { const [d, a] = await Promise.all([api('datasets'), api('analyses')]); setDatasets(d.datasets); setAnalyses(a.analyses); }, []);
+  useEffect(() => { document.documentElement.dataset.theme = theme; try { localStorage.setItem('statlab-mern-theme', theme); } catch {} }, [theme]);
+  useEffect(() => { if (toast) { const timer = setTimeout(() => setToast(null), 6000); return () => clearTimeout(timer); } }, [toast]);
+  useEffect(() => { api('me').then(async result => { setUser(result.user); if (result.user) await refresh(); }).catch(e => setError(e.message)).finally(() => setReady(true)); const listener = () => { setUser(null); setDatasets([]); setAnalyses([]); }; window.addEventListener('statlab-signout', listener); return () => window.removeEventListener('statlab-signout', listener); }, [refresh]);
+  if (!ready) return <main className="initial"><span className="spinner"/> Opening your workspace…</main>;
+  if (error) return <main className="initial"><div><ErrorNotice error={error}/><button className="btn" onClick={() => location.reload()}>Retry connection</button></div></main>;
+  return <Context.Provider value={{ user, setUser, datasets, analyses, refresh, notify, theme, toggleTheme: () => setTheme(t => t === 'light' ? 'dark' : 'light') }}><a className="skip" href="#content" onClick={e => { e.preventDefault(); const content = document.getElementById('content'); content?.setAttribute('tabindex', '-1'); content?.focus(); content?.scrollIntoView(); }}>Skip to content</a><HashRouter><Routes><Route path="/login" element={user ? <Navigate to="/dashboard"/> : <Auth/>}/><Route path="/signup" element={user ? <Navigate to="/dashboard"/> : <Auth/>}/><Route path="/*" element={<Shell/>}/></Routes></HashRouter>{toast && <div id="toast" role="status" aria-live="polite" className={toast.error ? 'error' : ''}>{toast.message}</div>}</Context.Provider>;
+}
+createRoot(document.getElementById('root')).render(<App/>);
