@@ -24,7 +24,7 @@ The production frontend is built with Vite and served by Express. Development us
 | `server/models.js` | Mongoose documents, unique indexes and session expiry |
 | `server/statistics.js` | Deterministic JavaScript statistics and dataset validation |
 | `server/reports.js` | CSV exports and paginated PDF report generation |
-| `scripts/start.mjs` | Starts the isolated database, seeds a first workspace and runs the app |
+| `scripts/start.mjs` | Starts the isolated database and runs the app |
 
 The copied CSS, logo and Plotly files retain the visual identity of the source project. The application is rendered with React components; it does not wrap or run the original vanilla JavaScript frontend. Calculations run in JavaScript on Node.js; there is no Python/SQLite runtime dependency.
 
@@ -48,13 +48,13 @@ erDiagram
 
 MongoDB ObjectId strings replace the original SQLite integer identifiers. Data is explicitly separate from the original account database. Each dataset stores its ordered columns and rows as one bounded document; an atomic revision filter prevents stale updates. Observation edits increment the revision, while name/description edits preserve it. Saved analyses compare their captured revision to the current dataset revision to derive historical status. Saving recomputes results from server data, ignoring any client-supplied calculation.
 
-Dataset-scoped custom parameters appear across that dataset's reports. Analysis-scoped parameters appear in their selected report. Duplicating a dataset copies dataset parameters; duplicating an analysis copies its scoped parameters. Deleting an analysis releases its parameters to dataset scope. Deleting a dataset removes its analyses and parameters. Cascade cleanup uses explicit MongoDB operations, suitable for this single-server local demonstration; it is not a multi-document transaction.
+Dataset-scoped custom parameters appear across that dataset's reports. Analysis-scoped parameters appear in their selected report. Duplicating a dataset copies dataset parameters; duplicating an analysis copies its scoped parameters. Deleting an analysis releases its parameters to dataset scope. Deleting a dataset removes its analyses and parameters. Cascade cleanup uses explicit MongoDB operations, for this single-server local application; it is not a multi-document transaction.
 
 ## Local process and file isolation
 
 The launcher finds an existing MongoDB Community Server executable but does not change its installed Windows service. Its separate `mongod` binds to 127.0.0.1:27027 with `--dbpath` pointing to this folder's `data/db`. Logs and startup metadata go to `.runtime`. On shutdown, the launcher stops only child processes it owns; a database it reused is left running.
 
-Express binds to 127.0.0.1:4307. The configuration intentionally supports a local demonstration. No data is sent to Atlas or another cloud service. The original project, SQLite data and running MongoDB service are not used as storage.
+Express binds to 127.0.0.1:4307. The configuration supports local use. No data is sent to Atlas or another cloud service. The original project, SQLite data and running MongoDB service are not used as storage.
 
 ## Security and statistical policy
 
@@ -62,4 +62,4 @@ Authentication uses Node's built-in scrypt, random per-account salts, hashed ran
 
 Quantiles use type-7 interpolation. Sample variance uses n−1 and population variance uses N. Skewness and excess kurtosis use sample bias corrections. Z-scores use population standard deviation. Coefficient of variation uses sample spread over the absolute mean. Paired missing-value handling drops whole pairs; weights are matched to retained source rows. Spearman ranks average ties. Class intervals use midpoint estimates and exact value frequencies expand to observations. Undefined metrics return null with explanations. See `server/conventions.json` and the original metric definitions retained in `server/catalog.json`.
 
-The launcher and seed procedure preserve accounts and work across restarts. The application supplies no email reset service, remote deployment setup, sharing model or production operational hardening beyond the local demonstration's requirements.
+The launcher preserves accounts and work across restarts. Accounts are created only through registration; new workspaces start empty. The application supplies no email reset service, remote deployment setup or sharing model.

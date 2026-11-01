@@ -2,7 +2,7 @@
 cd /d "%~dp0"
 where node >nul 2>nul
 if errorlevel 1 (
-  echo Install Node.js 22.12 or newer before running this demo.
+  echo Install Node.js 22.12 or newer before running StatLab.
   pause
   exit /b 1
 )
@@ -14,6 +14,6 @@ if not exist node_modules (
   )
 )
 echo Open http://127.0.0.1:4307 after the server is ready.
-echo Username: demo   Password: Demo4307!
+echo Sign in with your account or choose Create an account.
 call npm.cmd start
 pause

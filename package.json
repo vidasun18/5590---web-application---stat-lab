@@ -9,7 +9,6 @@
     "dev": "node scripts/start.mjs --dev",
     "build": "vite build --config client/vite.config.js",
     "server": "node server/index.js",
-    "seed": "node server/seed.js",
     "test": "node --test --test-concurrency=1 tests/*.test.js",
     "check": "node scripts/check.mjs"
   },

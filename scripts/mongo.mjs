@@ -14,7 +14,7 @@ function executable() {
 export async function startMongo() {
   if (await ping()) { console.log('Local MongoDB is already available.'); return null; }
   const uri = new URL(config.mongoUri), port = Number(process.env.MONGO_PORT || 27027);
-  if (!['127.0.0.1', 'localhost'].includes(uri.hostname) || Number(uri.port || 27017) !== port) throw new Error('Configured database is unavailable. For the isolated demo use mongodb://127.0.0.1:27027/statlab_4307 and MONGO_PORT=27027.');
+  if (!['127.0.0.1', 'localhost'].includes(uri.hostname) || Number(uri.port || 27017) !== port) throw new Error('Configured database is unavailable. For the project-local database use mongodb://127.0.0.1:27027/statlab_4307 and MONGO_PORT=27027.');
   const data = path.join(root, 'data/db'), runtime = path.join(root, '.runtime'); mkdirSync(data, { recursive: true }); mkdirSync(runtime, { recursive: true });
   console.log(`Starting isolated MongoDB on 127.0.0.1:${port}\nDatabase files: ${data}`);
   const child = spawn(executable(), ['--dbpath', data, '--port', String(port), '--bind_ip', '127.0.0.1', '--logpath', path.join(runtime, 'mongodb.log'), '--logappend'], { cwd: root, windowsHide: true, stdio: 'ignore' });
